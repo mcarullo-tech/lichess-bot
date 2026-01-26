@@ -109,35 +109,11 @@ class MattysBot(ExampleEngine):
 
     def search(self, board, time_limit, ponder, draw_offered, root_moves):
 
-        # --- Extract remaining time and increment ---
-        '''
-        if isinstance(time_limit.time, int):
-            my_time = time_limit.time
-            my_inc = 0
-        elif board.turn == chess.WHITE:
-            my_time = time_limit.white_clock or 0
-            my_inc = time_limit.white_inc or 0
-        else:
-            my_time = time_limit.black_clock or 0
-            my_inc = time_limit.black_inc or 0
-
-        # --- Compute a realistic time budget ---
-        # Spend ~1/30 of remaining time + increment
-        time_budget = (my_time / 30.0) + my_inc
-        if time_budget < 0.01:
-            time_budget = 0.01  # never zero
-
-        start_time = time.time()
-        '''
-
         # --- Search parameters ---
-        depth = 3
+        depth = 4
         maximizing = board.turn == chess.WHITE
         best_eval = -float('inf') if maximizing else float('inf')
         best_move = None
-
-        # Boolean to keep track of whether or not we timed out
-        #timed_out = False
 
         # --- Root move list ---
         moves = root_moves if isinstance(root_moves, list) else list(board.legal_moves)
@@ -154,24 +130,11 @@ class MattysBot(ExampleEngine):
                 best_eval = score
                 best_move = move
 
-            # Stop early if time is up
-            #if time.time() - start_time >= time_budget:
-            #    timed_out=True
-            #    break
-
         if best_move is None:
             best_move = random.choice(list(board.legal_moves))
         
         # Print statements to understand what the engine is thinking
         print(f"[ENGINE] Best move: {best_move}, Eval: {best_eval}")
-        #print(f"[ENGINE] Move time: {time.time() - start_time:.3f}s")
-        #print(f"[ENGINE] Timed out: {timed_out}")
-
-
-
-        # We can probably remove draw logic here and work on it in config.yml
-        # if draw_offered and abs(best_eval) < 50:
-            # return PlayResult(None, None, draw_offered=True)
 
         return PlayResult(best_move, None)
 
@@ -240,11 +203,6 @@ def material_evaluation(board):
 
 def minimax(board, depth, alpha, beta, maximizing):
 
-    # --- Timeout check ---
-    #if time.time() - start_time >= time_budget:
-    #    print("[ENGINE] Time cutoff triggered within minimax function")
-    #    return material_evaluation(board)
-
     # --- Terminal node ---
     if depth == 0 or board.is_game_over():
         return material_evaluation(board)
@@ -264,10 +222,6 @@ def minimax(board, depth, alpha, beta, maximizing):
             if alpha >= beta:
                 break
 
-            #if time.time() - start_time >= time_budget:
-            #    print("[ENGINE] Time cutoff triggered within minimax function")
-            #    break
-
         return value
 
     else:
@@ -284,9 +238,5 @@ def minimax(board, depth, alpha, beta, maximizing):
             # We can prune because White already has a better (higher) option elsewhere.
             if beta <= alpha:
                 break
-
-            #if time.time() - start_time >= time_budget:
-            #    print("[ENGINE] Time cutoff triggered within minimax function")
-            #    break
 
         return value

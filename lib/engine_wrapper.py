@@ -691,7 +691,7 @@ def single_move_time(board: chess.Board, game: model.Game, search_time: datetime
     logger.info(f"Searching for time {sec_str(search_time)} seconds for game {game.id}")
     return chess.engine.Limit(time=to_seconds(search_time), clock_id="correspondence")
 
-
+# Separate logic to determine how much time the engine can think for on the **first move**
 def first_move_time(game: model.Game) -> chess.engine.Limit:
     """
     Determine time limit for the first move in the game.
