@@ -106,49 +106,57 @@ class ComboEngine(ExampleEngine):
 
 
 class MattysBot(ExampleEngine):
-    def search(self,
-               board: chess.Board,
-               time_limit: Limit,
-               ponder: bool,
-               draw_offered: bool,
-               root_moves: MOVE) -> PlayResult:
+
+    def search(self, board, time_limit, ponder, draw_offered, root_moves):
+
+        # --- Extract remaining time and increment ---
+        if isinstance(time_limit.time, int):
+            my_time = time_limit.time
+            my_inc = 0
+        elif board.turn == chess.WHITE:
+            my_time = time_limit.white_clock or 0
+            my_inc = time_limit.white_inc or 0
+        else:
+            my_time = time_limit.black_clock or 0
+            my_inc = time_limit.black_inc or 0
+
+        # --- Compute a realistic time budget ---
+        # Spend ~1/30 of remaining time + increment
+        time_budget = (my_time / 30.0) + my_inc
+        if time_budget < 0.01:
+            time_budget = 0.01  # never zero
 
         start_time = time.time()
-        time_cutoff = 0.3  # seconds
 
-        depth = 2
+        # --- Search parameters ---
+        depth = 3
+        maximizing = board.turn == chess.WHITE
+        best_eval = -float('inf') if maximizing else float('inf')
         best_move = None
 
-        if board.turn == chess.WHITE:
-            maximizing_player = True
-            best_eval = -float('inf')
-        else:
-            maximizing_player = False
-            best_eval = float('inf')
-
+        # --- Root move list ---
         moves = root_moves if isinstance(root_moves, list) else list(board.legal_moves)
 
         for move in moves:
-            # Time cutoff check
-            if time.time() - start_time > time_cutoff:
-                break
-
             board.push(move)
-            eval = minimax(board, depth-1, -float('inf'), float('inf'),
-                           not maximizing_player, start_time, time_cutoff)
+            score = minimax(board, depth - 1, -float('inf'), float('inf'), not maximizing, start_time, time_budget)
             board.pop()
 
-            if maximizing_player and eval > best_eval:
-                best_eval = eval
+            if maximizing and score > best_eval:
+                best_eval = score
                 best_move = move
-            elif not maximizing_player and eval < best_eval:
-                best_eval = eval
+            elif not maximizing and score < best_eval:
+                best_eval = score
                 best_move = move
+
+            # Stop early if time is up
+            if time.time() - start_time >= time_budget:
+                break
 
         if best_move is None:
             best_move = random.choice(list(board.legal_moves))
 
-        # Draw acceptance logic
+        # We can probably remove draw logic here and work on it in config.yml
         if draw_offered and abs(best_eval) < 50:
             return PlayResult(None, None, draw_offered=True)
 
@@ -158,6 +166,7 @@ class MattysBot(ExampleEngine):
 
 
 # Determine if we are in an endgame
+# Note that this follows Michniewski's definition of "endgame." Its definitely too simplistic, should update this later
 def is_endgame(board):
     pieces = list(board.piece_map().values())
 
@@ -168,7 +177,6 @@ def is_endgame(board):
     # Condition B: no rooks and at most two minor pieces total
     minor_count = sum(p.piece_type in (chess.BISHOP, chess.KNIGHT) for p in pieces)
     rook_count = sum(p.piece_type == chess.ROOK for p in pieces)
-
     if rook_count == 0 and minor_count <= 2:
         return True
 
@@ -176,6 +184,8 @@ def is_endgame(board):
 
 
 # Material evaluation function with piece-square tables
+# This function is agnostic as to whom the computer is playing
+# Positive eval is better for white, negative eval is better for black
 def material_evaluation(board):
     endgame = is_endgame(board)
     score = 0
@@ -213,41 +223,48 @@ def material_evaluation(board):
     # Score will be positive if white is better, and negative if black is better
     return score
 
-def minimax(board, depth, alpha, beta, maximizing_player, start_time, time_cutoff):
-    # Base case: depth reached or game over
+
+
+def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
+
+    # --- Timeout check ---
+    if time.time() - start_time >= time_budget:
+        return material_evaluation(board)
+
+    # --- Terminal node ---
     if depth == 0 or board.is_game_over():
         return material_evaluation(board)
 
-    # Time cutoff
-    if time.time() - start_time > time_cutoff:
-        return material_evaluation(board)
-
-    if maximizing_player:
+    if maximizing:
         value = -float('inf')
         for move in board.legal_moves:
             board.push(move)
-            value = max(
-                value,
-                minimax(board, depth - 1, alpha, beta, False, start_time, time_cutoff)
-            )
+            # Recursive call to minimax function to search one level deeper
+            value = max(value, minimax(board, depth - 1, alpha, beta, False, start_time, time_budget))
             board.pop()
 
             alpha = max(alpha, value)
             if alpha >= beta:
-                break  # Beta cutoff
+                break
+
+            if time.time() - start_time >= time_budget:
+                break
+
         return value
 
     else:
         value = float('inf')
         for move in board.legal_moves:
             board.push(move)
-            value = min(
-                value,
-                minimax(board, depth - 1, alpha, beta, True, start_time, time_cutoff)
-            )
+            # Recursive call to minimax function to search one level deeper
+            value = min(value, minimax(board, depth - 1, alpha, beta, True, start_time, time_budget))
             board.pop()
 
             beta = min(beta, value)
             if beta <= alpha:
-                break  # Alpha cutoff
+                break
+
+            if time.time() - start_time >= time_budget:
+                break
+
         return value
