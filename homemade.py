@@ -110,6 +110,7 @@ class MattysBot(ExampleEngine):
     def search(self, board, time_limit, ponder, draw_offered, root_moves):
 
         # --- Extract remaining time and increment ---
+        '''
         if isinstance(time_limit.time, int):
             my_time = time_limit.time
             my_inc = 0
@@ -127,6 +128,7 @@ class MattysBot(ExampleEngine):
             time_budget = 0.01  # never zero
 
         start_time = time.time()
+        '''
 
         # --- Search parameters ---
         depth = 3
@@ -135,7 +137,7 @@ class MattysBot(ExampleEngine):
         best_move = None
 
         # Boolean to keep track of whether or not we timed out
-        timed_out = False
+        #timed_out = False
 
         # --- Root move list ---
         moves = root_moves if isinstance(root_moves, list) else list(board.legal_moves)
@@ -153,17 +155,17 @@ class MattysBot(ExampleEngine):
                 best_move = move
 
             # Stop early if time is up
-            if time.time() - start_time >= time_budget:
-                timed_out=True
-                break
+            #if time.time() - start_time >= time_budget:
+            #    timed_out=True
+            #    break
 
         if best_move is None:
             best_move = random.choice(list(board.legal_moves))
         
         # Print statements to understand what the engine is thinking
         print(f"[ENGINE] Best move: {best_move}, Eval: {best_eval}")
-        print(f"[ENGINE] Move time: {time.time() - start_time:.3f}s")
-        print(f"[ENGINE] Timed out: {timed_out}")
+        #print(f"[ENGINE] Move time: {time.time() - start_time:.3f}s")
+        #print(f"[ENGINE] Timed out: {timed_out}")
 
 
 
@@ -239,9 +241,9 @@ def material_evaluation(board):
 def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
 
     # --- Timeout check ---
-    if time.time() - start_time >= time_budget:
-        print("[ENGINE] Time cutoff triggered within minimax function")
-        return material_evaluation(board)
+    #if time.time() - start_time >= time_budget:
+    #    print("[ENGINE] Time cutoff triggered within minimax function")
+    #    return material_evaluation(board)
 
     # --- Terminal node ---
     if depth == 0 or board.is_game_over():
@@ -262,9 +264,9 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
             if alpha >= beta:
                 break
 
-            if time.time() - start_time >= time_budget:
-                print("[ENGINE] Time cutoff triggered within minimax function")
-                break
+            #if time.time() - start_time >= time_budget:
+            #    print("[ENGINE] Time cutoff triggered within minimax function")
+            #    break
 
         return value
 
@@ -283,8 +285,8 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
             if beta <= alpha:
                 break
 
-            if time.time() - start_time >= time_budget:
-                print("[ENGINE] Time cutoff triggered within minimax function")
-                break
+            #if time.time() - start_time >= time_budget:
+            #    print("[ENGINE] Time cutoff triggered within minimax function")
+            #    break
 
         return value
