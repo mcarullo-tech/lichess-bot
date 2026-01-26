@@ -144,7 +144,7 @@ class MattysBot(ExampleEngine):
 
         for move in moves:
             board.push(move)
-            score = minimax(board, depth - 1, -float('inf'), float('inf'), not maximizing, start_time, time_budget)
+            score = minimax(board, depth - 1, -float('inf'), float('inf'), not maximizing)
             board.pop()
 
             if maximizing and score > best_eval:
@@ -238,7 +238,7 @@ def material_evaluation(board):
 
 
 
-def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
+def minimax(board, depth, alpha, beta, maximizing):
 
     # --- Timeout check ---
     #if time.time() - start_time >= time_budget:
@@ -254,7 +254,7 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
         for move in board.legal_moves:
             board.push(move)
             # Recursive call to minimax function to search one level deeper
-            value = max(value, minimax(board, depth - 1, alpha, beta, False, start_time, time_budget))
+            value = max(value, minimax(board, depth - 1, alpha, beta, False))
             board.pop()
 
             alpha = max(alpha, value)
@@ -275,7 +275,7 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
         for move in board.legal_moves:
             board.push(move)
             # Recursive call to minimax function to search one level deeper
-            value = min(value, minimax(board, depth - 1, alpha, beta, True, start_time, time_budget))
+            value = min(value, minimax(board, depth - 1, alpha, beta, True))
             board.pop()
 
             beta = min(beta, value)
