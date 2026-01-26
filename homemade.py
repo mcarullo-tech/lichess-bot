@@ -134,6 +134,9 @@ class MattysBot(ExampleEngine):
         best_eval = -float('inf') if maximizing else float('inf')
         best_move = None
 
+        # Boolean to keep track of whether or not we timed out
+        timed_out = False
+
         # --- Root move list ---
         moves = root_moves if isinstance(root_moves, list) else list(board.legal_moves)
 
@@ -151,7 +154,7 @@ class MattysBot(ExampleEngine):
 
             # Stop early if time is up
             if time.time() - start_time >= time_budget:
-                print("[ENGINE] Time cutoff triggered within engine search")
+                timed_out=True
                 break
 
         if best_move is None:
@@ -160,12 +163,13 @@ class MattysBot(ExampleEngine):
         # Print statements to understand what the engine is thinking
         print(f"[ENGINE] Best move: {best_move}, Eval: {best_eval}")
         print(f"[ENGINE] Move time: {time.time() - start_time:.3f}s")
+        print(f"[ENGINE] Timed out: {timed_out}")
 
 
 
         # We can probably remove draw logic here and work on it in config.yml
-        if draw_offered and abs(best_eval) < 50:
-            return PlayResult(None, None, draw_offered=True)
+        # if draw_offered and abs(best_eval) < 50:
+            # return PlayResult(None, None, draw_offered=True)
 
         return PlayResult(best_move, None)
 
@@ -252,6 +256,9 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
             board.pop()
 
             alpha = max(alpha, value)
+
+            # If alpha >= beta, the minimizing player will avoid this branch. 
+            # We can prune because Black already has a better (lower) option elsewhere.
             if alpha >= beta:
                 break
 
@@ -270,6 +277,9 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
             board.pop()
 
             beta = min(beta, value)
+
+            # If beta <= alpha, the maximizing player will avoid this branch. 
+            # We can prune because White already has a better (higher) option elsewhere.
             if beta <= alpha:
                 break
 
