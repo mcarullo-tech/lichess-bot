@@ -121,10 +121,9 @@ class MattysBot(ExampleEngine):
             my_inc = time_limit.black_inc or 0
 
         # --- Compute a realistic time budget ---
-        # Spend ~1/30 of remaining time + increment
-        time_budget = (my_time / 30.0) + my_inc
+        # Spend ~1/10 of remaining time + increment
+        time_budget = (my_time / 10.0) + my_inc
         if time_budget < 0.01:
-            print("[ENGINE] Time cutoff triggered within engine search")
             time_budget = 0.01  # never zero
 
         start_time = time.time()
@@ -152,6 +151,7 @@ class MattysBot(ExampleEngine):
 
             # Stop early if time is up
             if time.time() - start_time >= time_budget:
+                print("[ENGINE] Time cutoff triggered within engine search")
                 break
 
         if best_move is None:
