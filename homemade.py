@@ -253,7 +253,6 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
 
             alpha = max(alpha, value)
             if alpha >= beta:
-                print("[ENGINE] Beta cutoff")
                 break
 
             if time.time() - start_time >= time_budget:
