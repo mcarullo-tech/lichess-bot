@@ -110,7 +110,7 @@ class MattysBot(ExampleEngine):
     def search(self, board, time_limit, ponder, draw_offered, root_moves):
 
         # --- Search parameters ---
-        depth = 4
+        depth = 3
         maximizing = board.turn == chess.WHITE
         best_eval = -float('inf') if maximizing else float('inf')
         best_move = None
