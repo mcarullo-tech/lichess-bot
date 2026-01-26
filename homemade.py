@@ -124,6 +124,7 @@ class MattysBot(ExampleEngine):
         # Spend ~1/30 of remaining time + increment
         time_budget = (my_time / 30.0) + my_inc
         if time_budget < 0.01:
+            print("[ENGINE] Time cutoff triggered within engine search")
             time_budget = 0.01  # never zero
 
         start_time = time.time()
@@ -155,6 +156,12 @@ class MattysBot(ExampleEngine):
 
         if best_move is None:
             best_move = random.choice(list(board.legal_moves))
+        
+        # Print statements to understand what the engine is thinking
+        print(f"[ENGINE] Best move: {best_move}, Eval: {best_eval}")
+        print(f"[ENGINE] Move time: {time.time() - start_time:.3f}s")
+
+
 
         # We can probably remove draw logic here and work on it in config.yml
         if draw_offered and abs(best_eval) < 50:
@@ -229,6 +236,7 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
 
     # --- Timeout check ---
     if time.time() - start_time >= time_budget:
+        print("[ENGINE] Time cutoff triggered within minimax function")
         return material_evaluation(board)
 
     # --- Terminal node ---
@@ -245,9 +253,11 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
 
             alpha = max(alpha, value)
             if alpha >= beta:
+                print("[ENGINE] Beta cutoff")
                 break
 
             if time.time() - start_time >= time_budget:
+                print("[ENGINE] Time cutoff triggered within minimax function")
                 break
 
         return value
@@ -265,6 +275,7 @@ def minimax(board, depth, alpha, beta, maximizing, start_time, time_budget):
                 break
 
             if time.time() - start_time >= time_budget:
+                print("[ENGINE] Time cutoff triggered within minimax function")
                 break
 
         return value
